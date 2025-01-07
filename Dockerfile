@@ -7,17 +7,15 @@ WORKDIR /var/www/html
 # Copy seluruh file proyek ke dalam container
 
 COPY . .
-# Install dependensi PHP yang dibutuhkan Laravel
-
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
 RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 RUN apt-get update && apt-get install -y git
 RUN composer
 RUN composer install --no-scripts --no-autoloader
-
+RUN docker-php-ext-install mysqli pdo_mysql
 
 # Set permission untuk direktori storage
-RUN chown -R www-data:www-data storage
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Expose port untuk aplikasi Laravel
 EXPOSE 9000
