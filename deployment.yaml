@@ -1,0 +1,80 @@
+# Deployment untuk aplikasi Laravel
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-app
+  labels:
+    app: laravel
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: laravel
+  template:
+    metadata:
+      labels:
+        app: laravel
+    spec:
+      containers:
+        - name: laravel-container
+          image: atiohaidar/belajar_laravel:latest  
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_ENV
+              value: production
+            - name: APP_KEY
+              value: base64:k+LLq17hXv8P1UFuvIYooqinXawGM/0jafNw05+KbxE=  
+            - name: APP_DEBUG
+              value: "false"
+          volumeMounts:
+            - name: app-storage
+              mountPath: /var/www/html/storage
+      volumes:
+        - name: app-storage
+          emptyDir: {}
+
+---
+
+# Service untuk aplikasi Laravel
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-service
+spec:
+  selector:
+    app: laravel
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+
+---
+
+# Persistent Volume untuk aplikasi Laravel
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: laravel-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/laravel
+
+---
+
+# Persistent Volume Claim untuk aplikasi Laravel
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laravel-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
